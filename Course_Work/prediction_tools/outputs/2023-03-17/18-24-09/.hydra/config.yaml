@@ -1,3 +1,0 @@
-train_df_path: E:/Work/PTB_XL/tesla_datasets/train_split_map_ptbxl.csv
-ecg_record_params:
-  type: 2d

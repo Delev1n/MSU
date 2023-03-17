@@ -1,7 +1,0 @@
-train_df_path: E:/Work/PTB_XL/tesla_datasets/train_split_map_ptbxl.csv
-task_params:
-  pathology_names:
-  - AFIB
-  merge_map: {}
-ecg_record_params:
-  input_type: 2d
