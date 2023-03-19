@@ -2,7 +2,7 @@ import hydra
 from omegaconf import DictConfig
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold
-from data_utils.dataset import get_dataloader, create_df
+from utils.data_utils import get_dataloader, create_df
 
 
 @hydra.main(version_base=None, config_path="../", config_name="config")

@@ -1,6 +1,6 @@
 import pandas as pd
-from .ecg_2d_dataset import Ecg2dDataset
-from .ecg_1d_dataset import Ecg1dDataset
+from ..datasets.ecg_2d_dataset import Ecg2dDataset
+from ..datasets.ecg_1d_dataset import Ecg1dDataset
 from sklearn.preprocessing import MultiLabelBinarizer
 import ast
 from torch.utils.data import DataLoader
