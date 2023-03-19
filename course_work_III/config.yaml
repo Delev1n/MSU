@@ -1,3 +1,4 @@
+model: "resnet1d18"
 train_df_path: "E:/Work/PTB_XL/tesla_datasets/train_split_map_ptbxl.csv"
 
 training_params:

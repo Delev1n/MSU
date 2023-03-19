@@ -3,6 +3,7 @@ from omegaconf import DictConfig
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold
 from utils.data_utils import get_dataloader, create_df
+from utils.model_utils import get_model
 
 
 @hydra.main(version_base=None, config_path="../", config_name="config")
@@ -22,6 +23,9 @@ def train(cfg: DictConfig):
         train_split_df, valid_split_df = df.iloc[train_index], df.iloc[val_index]
         train_loader = get_dataloader(train_split_df, cfg)
         valid_loader = get_dataloader(valid_split_df, cfg)
+
+    model = get_model(cfg)
+    print(model)
 
     return 0
 
