@@ -4,14 +4,15 @@ from sklearn.model_selection import StratifiedKFold
 from utils.data_utils import get_dataloader, create_df
 from utils.model_utils import get_model
 from utils.metrics_utils import select_best_validation_threshold, metrics_report
-import torch
 from tqdm import tqdm
+from utils.device_utils import *
+import torch
 
 
 @hydra.main(version_base=None, config_path="../", config_name="config")
 def train(cfg: DictConfig):
 
-    df = create_df(cfg)
+    df = create_df(cfg, "train")
 
     skf = StratifiedKFold(n_splits=cfg.training_params.folds)
 
@@ -137,19 +138,6 @@ def train(cfg: DictConfig):
                 break
 
     return 0
-
-
-def get_default_device():
-    if torch.cuda.is_available():
-        return torch.device('cuda')
-    else:
-        return torch.device('cpu')
-
-
-def to_device(data, device):
-    if isinstance(data, (list, tuple)):
-        return [to_device(x, device) for x in data]
-    return data.to(device, non_blocking=True)
 
 
 if __name__ == "__main__":
