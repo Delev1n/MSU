@@ -1,10 +1,18 @@
 model: "resnet1d18"
-train_df_path: "E:/Work/PTB_XL/tesla_datasets/train_split_map_ptbxl.csv"
+dataset: "ptbxl"
+single_run_dir: ${hydra:run.dir}
+
+df_path:
+  ptbxl:
+    train_directory: "E:/Work/PTB_XL/tesla_datasets/train_split_map_ptbxl.csv"
+    valid_directory: "E:/Work/PTB_XL/tesla_datasets/valid_split_map_ptbxl.csv"
+    test_directory: "E:/Work/PTB_XL/tesla_datasets/test_map_ptbxl.csv"
 
 training_params:
   folds: 5
-  batch_size: 32
+  batch_size: 256
   lr: 0.003
+  epochs: 200
 
 task_params:
   pathology_names: ["AFIB"]

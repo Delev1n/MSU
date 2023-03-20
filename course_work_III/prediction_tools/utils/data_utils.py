@@ -6,8 +6,11 @@ import ast
 from torch.utils.data import DataLoader
 
 
-def create_df(ecg_info: pd.DataFrame, cfg):
+def create_df(cfg):
 
+    assert cfg.dataset in ["ptbxl"]
+
+    ecg_info = pd.read_csv(cfg.df_path.ptbxl.train_directory)
     ecg_info.reset_index(drop=True, inplace=True)
     one_hot = make_onehot(ecg_info, cfg.task_params.pathology_names)
 
