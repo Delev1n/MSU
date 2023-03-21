@@ -1,0 +1,11 @@
+numpy
+--extra-index-url https://download.pytorch.org/whl/cu113
+torch==1.13.0
+Pillow
+fastai
+pandas
+scikit_learn
+torchvision
+hydra_core
+tqdm
+

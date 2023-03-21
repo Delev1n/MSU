@@ -1,0 +1,7 @@
+pandas
+Pillow
+ecg_plot
+pandas
+numpy
+matplotlib
+scipy
