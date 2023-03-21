@@ -9,7 +9,7 @@ from utils.device_utils import *
 import torch
 
 
-@hydra.main(version_base=None, config_path=".", config_name="config")
+@hydra.main(version_base=None, config_path="utils/", config_name="config")
 def train(cfg: DictConfig):
 
     df = create_df(cfg, "train")

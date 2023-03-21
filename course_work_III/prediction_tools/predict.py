@@ -11,7 +11,7 @@ from tqdm import tqdm
 import numpy as np
 
 
-@hydra.main(version_base=None, config_path=".", config_name="config")
+@hydra.main(version_base=None, config_path="utils/", config_name="config")
 def predict(cfg: DictConfig):
 
     model_info = torch.load(cfg.predict.checkpoint_path, map_location=torch.device("cpu"))
