@@ -45,5 +45,5 @@ python train.py model=resnet2d18 training_params.batch_size=32 task_params.patho
 
 #### Пример запуска
 ```
-python predict.py model=resnet2d18 task_params.pathology_names=[AFIB] ecg_record_params.input_type=2d ecg_record_params.base=E:/Work/PTB_XL/scalograms ecg_record_params.size=[512,1536] predict.checkpoint_path=E:/Work/MSU/course_work_III/prediction_tools/outputs/2023-03-21/12-36-07
+python predict.py model=resnet2d18 task_params.pathology_names=[AFIB] ecg_record_params.input_type=2d ecg_record_params.base=E:/Work/PTB_XL/scalograms ecg_record_params.size=[512,1536] predict.checkpoint_path=E:/Work/MSU/course_work_III/prediction_tools/outputs/2023-03-21/12-36-07/12_leads_experiment_ptbxl_resnet2d18_PVC_0.pt
 ```
