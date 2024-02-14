@@ -1,0 +1,20 @@
+mode: "train" # Either train, federated_train or test
+
+single_run_dir: ${hydra:run.dir} # Output folder
+
+dataset_path: "/home/khachaturov/MSU/diploma_IV/dataset/open_dataset.csv" # Path to the given dataset/ptbxl.csv
+
+clients_num: 5 # Amount of clients
+
+device: "cuda" # Device configs
+device_ids: [0]
+
+random_state: 42
+
+# Hyperparameters
+
+learning_rate: 0.003
+epochs: 200
+early_stopping_patience: 10
+batch_size: 32
+num_workers: 4
