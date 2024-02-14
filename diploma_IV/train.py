@@ -2,13 +2,17 @@ import hydra
 from omegaconf import DictConfig
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from ecglib.data import EcgDataset
-from torch.utils.data import DataLoader
 import numpy as np
-import torch
 
-from utils.data_utils import add_clients_columns, edit_file_paths
+from utils.data_utils import (
+    add_clients_columns,
+    edit_file_paths,
+    get_loader,
+    change_labels_of_clients,
+)
+from utils.loss_utils import get_loss
 from trainer import BaseTrainer
+from federated_trainer import FederatedTrainer
 
 
 @hydra.main(version_base=None, config_path="utils/", config_name="config")
@@ -19,71 +23,72 @@ def train(cfg: DictConfig):
     if cfg.mode == "federated_train":
 
         df = add_clients_columns(cfg, df)
+        federated_trainer = FederatedTrainer(cfg)
+        if cfg.device == "cuda":
+            federated_trainer.device = "{}:{}".format(cfg.device, cfg.device_ids[0])
+        if federated_trainer.attack:
+            np.random.seed(cfg.random_state)
+            federated_trainer.attacking_clients = np.random.choice(
+                range(cfg.federated_params.clients_num),
+                size=int(
+                    cfg.federated_params.clients_num
+                    * cfg.federated_params.amount_of_attackers
+                ),
+                replace=False,
+            )
+            print(f"Attacking client indeces: {federated_trainer.attacking_clients}")
+            df = change_labels_of_clients(
+                df,
+                federated_trainer.attacking_clients,
+                cfg.federated_params.percent_of_changed_labels,
+            )
+            print("Succesfully flipped the labels")
+
+        federated_trainer.train_df, federated_trainer.valid_df = train_test_split(
+            df,
+            test_size=0.2,
+            random_state=cfg.random_state,
+            stratify=df["clients"],
+        )
+
+        if "FLTrust" in cfg.federated_params.method:
+            fltrust_df = pd.read_csv(cfg.federated_params.server_dataset)
+            fltrust_df = edit_file_paths(cfg, fltrust_df)
+            federated_trainer.fltrust_train_df, federated_trainer.fltrust_valid_df = (
+                train_test_split(
+                    fltrust_df,
+                    test_size=0.2,
+                    random_state=cfg.random_state,
+                    shuffle=True,
+                    stratify=fltrust_df["AFIB"],
+                )
+            )
+            print("Initialized FLTrust dataset")
+
+        test_df = pd.read_csv(cfg.federated_params.test_dataset)
+        test_df = edit_file_paths(cfg, test_df)
+        federated_trainer.test_df = test_df
+        federated_trainer.criterion = get_loss(df, federated_trainer.device)
+        federated_trainer.federated_training()
 
     elif cfg.mode == "train":
 
         trainer = BaseTrainer(cfg)
-        X_train, X_valid, y_train, y_valid = train_test_split(
-            df.drop(columns=["AFIB"], axis=1),
-            df["AFIB"],
+        train_df, valid_df = train_test_split(
+            df,
             test_size=0.2,
             random_state=cfg.random_state,
             shuffle=True,
             stratify=df["AFIB"],
         )
 
-        train_dataset = EcgDataset(
-            X_train.reset_index(drop=True),
-            y_train.reset_index(drop=True),
-            frequency=500,
-            leads=list(range(12)),
-            data_type="npz",
-            ecg_length=10,
-            norm_type="z_norm",
-            classes=1,
-            cut_range=[0, 0],
-            augmentation=None,
-        )
-        valid_dataset = EcgDataset(
-            X_valid.reset_index(drop=True),
-            y_valid.reset_index(drop=True),
-            frequency=500,
-            leads=list(range(12)),
-            data_type="npz",
-            ecg_length=10,
-            norm_type="z_norm",
-            classes=1,
-            cut_range=[0, 0],
-            augmentation=None,
-        )
-
-        trainer.train_loader = DataLoader(
-            train_dataset,
-            batch_size=cfg.batch_size,
-            shuffle=True,
-            num_workers=cfg.num_workers,
-            drop_last=True,
-        )
-        trainer.valid_loader = DataLoader(
-            valid_dataset,
-            batch_size=cfg.batch_size,
-            shuffle=True,
-            num_workers=cfg.num_workers,
-            drop_last=True,
-        )
+        trainer.train_loader = get_loader(cfg, train_df)
+        trainer.valid_loader = get_loader(cfg, valid_df)
 
         if cfg.device == "cuda":
             trainer.device = "{}:{}".format(cfg.device, cfg.device_ids[0])
 
-        target_array = np.array(df["AFIB"].tolist())
-        zeros_count = np.sum(target_array == 0, axis=0)
-        ones_count = np.sum(target_array == 1, axis=0)
-        pos_weight = torch.tensor([(zeros_count / ones_count).tolist()]).to(
-            trainer.device
-        )
-        trainer.criterion = torch.nn.BCEWithLogitsLoss(
-            size_average=True, reduce=True, reduction="mean", pos_weight=pos_weight
-        )
+        trainer.criterion = get_loss(df, trainer.device)
 
         trainer.train()
 
