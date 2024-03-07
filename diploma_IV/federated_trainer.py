@@ -219,14 +219,16 @@ class FederatedTrainer(BaseTrainer):
         return updated_list_of_trained_model_parameters
 
     def fltrust_new_update(self, updated_list_of_trained_model_parameters):
-        signal = self.test_df[self.test_df["AFIB"] == 0].sample()
+        signals = self.test_df[self.test_df["AFIB"] == 0].sample(
+            n=self.cfg.federated_params.fltrust_new_sample_amount,
+            random_state=self.cfg.random_state,
+        )
         self.valid_loader = get_loader(
             self.cfg,
-            signal,
+            signals,
         )
         _, _, fin_outputs = self.eval_fn()
-        print(torch.as_tensor(fin_outputs), torch.as_tensor(fin_outputs).shape)
-        server_result = self.sigmoid(torch.as_tensor(fin_outputs))[0][0]
+        server_result = self.sigmoid(torch.as_tensor(fin_outputs))
         trust_scores = []
         for i in range(self.cfg.federated_params.clients_num):
 
@@ -237,12 +239,19 @@ class FederatedTrainer(BaseTrainer):
             self.model = get_model(self.cfg)
             self.model.load_state_dict(tmp_weights)
             _, _, fin_outputs = self.eval_fn()
-            client_result = self.sigmoid(torch.as_tensor(fin_outputs))[0][0]
+            client_result = self.sigmoid(torch.as_tensor(fin_outputs))
+            trust_score = []
+            for j in range(self.cfg.federated_params.fltrust_new_sample_amount):
+                trust_score.append(
+                    self.count_trust_score_for_new_fltrust(
+                        server_result[j], client_result[j]
+                    )
+                )
             trust_scores.append(
-                self.count_trust_score_for_new_fltrust(server_result, client_result)
+                (sum(trust_score) / self.cfg.federated_params.fltrust_new_sample_amount)
             )
             print(f"Client {i} trust score: {trust_scores[i]}")
-
+        trust_scores = torch.Tensor(trust_scores).to(self.device)
         for i in range(self.cfg.federated_params.clients_num):
             for key, weights in updated_list_of_trained_model_parameters[i].items():
                 updated_list_of_trained_model_parameters[i][key] = (

@@ -28,3 +28,4 @@ federated_params:
 
     server_dataset: "/home/khachaturov/MSU/diploma_IV/dataset/server_dataset.csv"
     test_dataset: "/home/khachaturov/MSU/diploma_IV/dataset/test_dataset.csv"
+    fltrust_new_sample_amount: 50
