@@ -133,6 +133,9 @@ class FederatedTrainer(BaseTrainer):
             outputs = self.model(inp)
 
             loss = self.criterion(outputs, targets)
+            if self.federated_method == "FedProx":
+                proximity_loss = self.count_proximity()
+                loss += proximity_loss
 
             loss.backward()
 
@@ -269,3 +272,18 @@ class FederatedTrainer(BaseTrainer):
             return 2 * (
                 1 - self.sigmoid(torch.exp(10 * abs(client_result - server_result)) - 1)
             )
+
+    def count_proximity(self):
+        return (
+            0.5
+            * self.cfg.federated_params.fed_prox_lambda
+            * sum(
+                [
+                    (p.float() - q.float()).norm() ** 2
+                    for (_, p), (_, q) in zip(
+                        self.model.state_dict().items(),
+                        self.global_model.state_dict().items(),
+                    )
+                ]
+            )
+        )
