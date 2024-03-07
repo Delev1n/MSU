@@ -7,7 +7,7 @@ from torch.nn.functional import relu
 from trainer import BaseTrainer
 from utils.model_utils import get_model
 from utils.data_utils import get_loader
-from utils.metric_utils import select_best_validation_threshold
+from utils.metric_utils import select_best_validation_threshold, calculate_metrics
 
 
 class FederatedTrainer(BaseTrainer):
@@ -102,7 +102,7 @@ class FederatedTrainer(BaseTrainer):
             print("Epoch number:", ep)
             self.train_fn()
             _, fin_targets, fin_outputs = self.eval_fn()
-            self.calculate_metrics(fin_targets, fin_outputs)
+            calculate_metrics(fin_targets, fin_outputs)
 
         best_client_model_weights = OrderedDict()
         for key, weights in self.states[0].items():
@@ -178,7 +178,7 @@ class FederatedTrainer(BaseTrainer):
         )
         self.model = copy.deepcopy(self.global_model)
         _, fin_targets, fin_outputs = self.eval_fn()
-        self.calculate_metrics(fin_targets, fin_outputs)
+        calculate_metrics(fin_targets, fin_outputs)
 
         checkpoint_path = f"{self.cfg.single_run_dir}/federated_learning_{com_round}.pt"
         torch.save(aggregated_weights, checkpoint_path)

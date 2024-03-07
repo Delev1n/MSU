@@ -1,5 +1,5 @@
 from utils.model_utils import get_model
-from utils.metric_utils import select_best_validation_threshold, metrics_report
+from utils.metric_utils import calculate_metrics
 import torch
 from tqdm import tqdm
 
@@ -28,7 +28,7 @@ class BaseTrainer:
 
             self.train_fn()
             val_loss, fin_targets, fin_outputs = self.eval_fn()
-            self.calculate_metrics(fin_targets, fin_outputs)
+            calculate_metrics(fin_targets, fin_outputs)
 
             if val_loss >= self.best_loss:
                 self.epochs_no_improve += 1
@@ -89,13 +89,3 @@ class BaseTrainer:
                 fin_outputs.extend(outputs.tolist())
 
         return val_loss, fin_targets, fin_outputs
-
-    def calculate_metrics(self, fin_targets, fin_outputs):
-        sigmoid = torch.nn.Sigmoid()
-
-        fin_outputs = sigmoid(torch.as_tensor(fin_outputs))
-        self.prediction_threshold = select_best_validation_threshold(
-            fin_targets, fin_outputs
-        )
-        results = (fin_outputs > self.prediction_threshold).float()
-        metrics_report(fin_targets, results.tolist(), ["AFIB"])

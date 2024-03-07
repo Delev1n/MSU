@@ -98,3 +98,12 @@ def compute_metrics(
         except ValueError:
             raise
     return df, conf_mat_df
+
+
+def calculate_metrics(fin_targets, fin_outputs):
+    sigmoid = torch.nn.Sigmoid()
+
+    fin_outputs = sigmoid(torch.as_tensor(fin_outputs))
+    prediction_threshold = select_best_validation_threshold(fin_targets, fin_outputs)
+    results = (fin_outputs > prediction_threshold).float()
+    metrics_report(fin_targets, results.tolist(), ["AFIB"])
