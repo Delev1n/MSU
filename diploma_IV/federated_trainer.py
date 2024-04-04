@@ -7,7 +7,7 @@ from torch.nn.functional import relu
 from trainer import BaseTrainer
 from utils.model_utils import get_model
 from utils.data_utils import get_loader
-from utils.metric_utils import select_best_validation_threshold, calculate_metrics
+from utils.metric_utils import calculate_metrics
 
 
 class FederatedTrainer(BaseTrainer):
@@ -30,7 +30,6 @@ class FederatedTrainer(BaseTrainer):
             self.fltrust_train_df = None
             self.fltrust_valid_df = None
             if self.federated_method == "FLTrust_new":
-                self.fltrust_threshold = None
                 self.sigmoid = torch.nn.Sigmoid()
 
     def init_client_dalaloaders(self, client_idx):
@@ -76,18 +75,6 @@ class FederatedTrainer(BaseTrainer):
 
                 self.model = copy.deepcopy(self.global_model)
                 server_model_weights = self.federated_training_round()
-
-                if self.federated_method == "FLTrust_new":
-                    self.valid_loader = get_loader(
-                        self.cfg,
-                        self.test_df,
-                    )
-                    _, fin_targets, fin_outputs = self.eval_fn()
-                    fin_outputs = self.sigmoid(torch.as_tensor(fin_outputs))
-                    self.fltrust_threshold = select_best_validation_threshold(
-                        fin_targets,
-                        fin_outputs,
-                    )
 
                 updated_list_of_trained_model_parameters.append(server_model_weights)
                 print("\nTrained server side model\n")
@@ -264,14 +251,9 @@ class FederatedTrainer(BaseTrainer):
         return updated_list_of_trained_model_parameters
 
     def count_trust_score_for_new_fltrust(self, server_result, client_result):
-        if (client_result - self.fltrust_threshold) * (
-            server_result - self.fltrust_threshold
-        ) < 0:
-            return 0
-        else:
-            return 2 * (
-                1 - self.sigmoid(torch.exp(10 * abs(client_result - server_result)) - 1)
-            )
+        return 2 * (
+            1 - self.sigmoid(torch.exp(10 * abs(client_result - server_result)) - 1)
+        )
 
     def count_proximity(self):
         return (

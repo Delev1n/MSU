@@ -2,7 +2,7 @@ mode: "federated_train" # train, federated_train, test
 
 single_run_dir: ${hydra:run.dir}
 
-dataset_path: "/home/khachaturov/MSU/diploma_IV/dataset/clients_dataset.csv"
+dataset_path: "/path/to/dir" # in dataset/
 
 device: "cuda"
 device_ids: [0]
@@ -24,13 +24,13 @@ federated_params:
 
     fed_prox_lambda: 0.0001
 
-    attack: True
+    attack: False
     amount_of_attackers: 0.5
     percent_of_changed_labels: 0.7
 
-    server_dataset: "/home/khachaturov/MSU/diploma_IV/dataset/server_dataset.csv"
-    test_dataset: "/home/khachaturov/MSU/diploma_IV/dataset/test_dataset.csv"
+    server_dataset: "/path/to/dir" # in dataset/
+    test_dataset: "/path/to/dir" # in dataset/
     fltrust_new_sample_amount: 50
 
 predict:
-    checkpoint_path: "/home/khachaturov/MSU/diploma_IV/outputs/2024-03-07/17-53-14/federated_learning_0.pt"
+    checkpoint_path: "/path/to/dir"
