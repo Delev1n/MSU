@@ -54,8 +54,8 @@ python3 train.py mode=federated_train federated_params.method=FedAvg federated_p
 Для запуска предсказания нужно запустить ```predict.py```, поменяв следующие параметры:
 
 * **mode**: обязательно выставить test
-* predict:
-    * checkpoint_path: Путь к сохраненной после тренировки модели
+* **predict**:
+    * **checkpoint_path**: Путь к сохраненной после тренировки модели
 
 #### Пример запуска
 ```
